@@ -1,61 +1,86 @@
-const express=require('express');
+const express = require('express');
+const app = express();
 
-const app=express();
+const noteModel=require("./models/notes.model");
 
 
-// add a middleware
 app.use(express.json());
 
-const notes=[];
 
 
 
-// title , description
-// Post  /note
+app.post("/notes",async (req,res)=>{
 
-app.post('/notes', (req, res) => {
-    console.log(req.body);
-    notes.push(req.body);
+    const data=req.body; /* {title, description} */
+
+    await noteModel.create({
+        title:data.title,
+        description: data.description
+    })
 
     res.status(201).json({
-        message: "Note created successfully"
+        message : "note created successfully"
     });
-}); 
 
-app.get('/notes', (req,res)=>{
+
+});
+
+app.get('/notes', async(req,res)=>{
+
+    const notes=await noteModel.find(); 
+
     res.status(200).json({
         message : "notes fetched successfully",
-        notes:notes
-    })
-});
+        notes: notes
+    })  
 
-app.delete('/notes/:index',(req,res)=>{
-    const index=req.params.index;
-    delete notes[index]
+})
+
+app.delete("/notes/:id",async(req,res)=>{
+    const id = req.params.id;
+    await noteModel.findByIdAndDelete({
+        _id:id
+
+    })
+
+
+
     res.status(200).json({
-        message: "note deleted successfully..."
-    })
+         message : "note deleted successfully"
+    });
+
 });
 
-app.patch('/notes/:index', (req,res)=>{
-
-    const index=req.params.index;
+app.patch('/notes/:id',async(req,res)=>{
+    const id=req.params.id;
     const description=req.body.description;
 
-    notes[index].description=description;
-
-    console.log(notes[index].description);
-
-    const title=req.body.title;
-    notes[index].title=title;
-
-
-
+    await noteModel.findOneAndUpdate(
+        { _id:id },
+        { description : description}
+    )
     res.status(200).json({
-        message: "note updated successfully..."
+        message : "Note updated successfully"
     })
+    
 
-});
 
 
-module.exports=app;
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+module.exports = app;
